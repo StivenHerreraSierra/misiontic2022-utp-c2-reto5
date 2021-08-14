@@ -19,6 +19,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JScrollPane;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -26,11 +27,11 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.text.DefaultFormatter;
+import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 /**
  *
@@ -62,7 +63,7 @@ public final class ConsultaFrame extends JFrame {
 	}
 
 	private TableModelBanco modelBanco;
-	private JTextField campoConsulta;
+	private JComboBox<String> campoBanco;
 	private JLabel totalProyectosBanco;
 
 	public void cargarBancoTab() {
@@ -80,11 +81,12 @@ public final class ConsultaFrame extends JFrame {
 		JPanel consultaPanel = new JPanel();
 		consultaPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		JLabel labelFor = new JLabel("Banco:");
-		campoConsulta = new JTextField();
-		campoConsulta.setSize(300, 30);
-		campoConsulta.setPreferredSize(new Dimension(300, 30));
-		campoConsulta.setMaximumSize(new Dimension(300, 30));
-		labelFor.setLabelFor(campoConsulta);
+		campoBanco = new JComboBox<>();
+		campoBanco.setSize(300, 30);
+		campoBanco.setPreferredSize(new Dimension(300, 30));
+		campoBanco.setMaximumSize(new Dimension(300, 30));
+		actualizarComboBoxBancos();
+		AutoCompleteDecorator.decorate(campoBanco);
 		JButton consultar = new JButton("Consultar");
 		consultar.setPreferredSize(new Dimension(120, 30));
 		consultar.addActionListener(e -> {
@@ -92,7 +94,7 @@ public final class ConsultaFrame extends JFrame {
 		});
 
 		consultaPanel.add(labelFor);
-		consultaPanel.add(campoConsulta);
+		consultaPanel.add(campoBanco);
 		consultaPanel.add(consultar);
 		consultaPanel.getInsets().set(5, 5, 5, 5);
 		consultaPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
@@ -126,11 +128,22 @@ public final class ConsultaFrame extends JFrame {
 		bancoTab.add(scrollTablaBanco);
 		bancoTab.add(totalProyectosBanco);
 
-		updateBancoData();
-
 		bancoTab.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 		tabbedPane.addTab("Banco", bancoTab);
 		this.add(tabbedPane);
+	}
+	
+	private void actualizarComboBoxBancos() {
+		List<String> bancos;
+		try {
+			bancos = controller.getListaNombreBancos();
+			campoBanco.removeAll();
+			bancos.forEach(banco -> campoBanco.addItem(banco));
+		} catch (DaoException e) {
+			IOUtilities.mostrarMensaje("Error cargando datos en el ComboBox.\n" + e.getMessage(),
+					"Error Consulta", JOptionPane.ERROR_MESSAGE);
+		}
+		
 	}
 
 	private TableModelCosto modelCosto;
@@ -201,8 +214,6 @@ public final class ConsultaFrame extends JFrame {
 		pagadoTab.add(scrollTablaCosto);
 		pagadoTab.add(totalRegistrosCosto);
 
-		updateBancoData();
-
 		pagadoTab.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 		tabbedPane.addTab("Costo", pagadoTab);
 		this.add(tabbedPane);
@@ -262,8 +273,6 @@ public final class ConsultaFrame extends JFrame {
 		lideresTab.add(scrollTablaTop);
 		lideresTab.add(totalRegistrosTop);
 
-		updateBancoData();
-
 		lideresTab.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 		tabbedPane.addTab("Top 10", lideresTab);
 		this.add(tabbedPane);
@@ -283,7 +292,7 @@ public final class ConsultaFrame extends JFrame {
 	}
 
 	private void updateBancoData() {
-		String banco = campoConsulta.getText().trim();
+		String banco = campoBanco.getSelectedItem().toString();
 		try {
 			List<ProyectoBancoVo> proyectos = controller.getProyectosFinanciadosPorBanco(banco);
 			modelBanco.updateData(proyectos);

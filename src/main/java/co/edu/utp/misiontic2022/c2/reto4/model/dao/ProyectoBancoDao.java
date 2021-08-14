@@ -14,6 +14,8 @@ public class ProyectoBancoDao {
 			+ "FROM Proyecto\n" + "JOIN Tipo\n" + "ON Proyecto.ID_Tipo = Tipo.ID_Tipo\n" + "JOIN Lider\n"
 			+ "ON Proyecto.ID_Lider = Lider.ID_Lider \n" + "WHERE Banco_Vinculado = ?\n"
 			+ "ORDER BY Fecha_Inicio DESC, Ciudad, Constructora";
+	
+	private final String GET_BANCOS = "SELECT DISTINCT Banco_Vinculado Banco FROM Proyecto WHERE Banco IS NOT NULL ORDER BY Banco";
 
 	public List<ProyectoBancoVo> proyectosFinanciadosPorBanco(String banco) throws DaoException {
 		Connection conn = null;
@@ -47,5 +49,27 @@ public class ProyectoBancoDao {
 		String lider = rs.getString("LIDER");
 
 		return new ProyectoBancoVo(id, constructora, ciudad, clasificacion, estrato, lider);
+	}
+
+	public List<String> getBancos() throws DaoException {
+		Connection conn = null;
+		PreparedStatement stat = null;
+		ResultSet rs = null;
+		List<String> bancos = new ArrayList<>();
+		
+		try {
+			conn = JDBCUtilities.getConnection();
+			stat = conn.prepareStatement(GET_BANCOS);
+			rs = stat.executeQuery();
+			while(rs.next())
+				bancos.add(rs.getString("Banco"));
+		} catch(SQLException e) {
+			throw new DaoException("Error en SQL: " + e.getMessage());
+		} finally {
+			JDBCUtilities.cerrarStatement(stat);
+			JDBCUtilities.cerrarResult(rs);
+		}
+		
+		return bancos;
 	}
 }

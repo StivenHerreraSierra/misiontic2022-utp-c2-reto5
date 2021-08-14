@@ -32,4 +32,8 @@ public class ReportesController {
 	public List<ComprasDeLiderVo> getLideresQueMenosGastan() throws DaoException {
 		return comprasDeLiderDao.getLideresQueMenosGastan();
 	}
+
+	public List<String> getListaNombreBancos() throws DaoException {
+		return proyectoBancoDao.getBancos();
+	}
 }
